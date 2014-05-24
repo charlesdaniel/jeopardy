@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Jeopardy Dental Edition</title>
+
+    <!-- Bootstrap -->
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <!-- script src="questions.js"></script>
+    <script src="teams.js"></script -->
+    <style>
+	@import url(http://fonts.googleapis.com/css?family=Economica:400,700);
+    	body { background-color: black }
+    	#gameboard { padding: 20px; }
+    	#gameboard .category_cols { background-color: black; }
+    	#gameboard .category_cols button { height: 75px; background-color: blue; color: white; border-radius: 15px; }
+	#gameboard .category_cols button {
+		-moz-box-shadow:    inset 0 0 40px #000000;
+		-webkit-box-shadow: inset 0 0 40px #000000;
+		box-shadow:         inset 0 0 40px #000000;
+	}
+	#gameboard .category_cols button.category_head { font-size: 1.5em; font-weight: bold; }
+	#gameboard .category_cols button.category_points { font-size: 2.10em; }
+	#gameboard button { text-shadow: 4px 4px 4px #000;}
+	#scorespanel .teambox { padding: 10px; border: 1px solid black; background-color: #666; margin-bottom: 20px;
+-webkit-box-shadow: 0px 7px 5px 0px rgba(50, 50, 50, 0.75);
+-moz-box-shadow:    0px 7px 5px 0px rgba(50, 50, 50, 0.75);
+box-shadow:         0px 7px 5px 0px rgba(50, 50, 50, 0.75);
+}
+	#scorespanel .score { display: block; background-color: blue; color: white; margin-bottom: 5px; padding: 3px; border: 1px solid silver; text-align: center;}
+	#scorespanel .name { display: block; background-color: blue; color: white; font-family: 'Rock Salt', cursive; padding: 5px; text-align: center; }
+	#scorespanel .negscore { background-color: red;
+-webkit-box-shadow: 0px 1px 16px 0px rgba(255, 50, 50, 0.75);
+-moz-box-shadow:    0px 1px 16px 0px rgba(255, 50, 50, 0.75);
+box-shadow:         0px 1px 16px 0px rgba(255, 50, 50, 0.75);
+}
+	#scorespanel { text-shadow: 2px 2px 2px #000;}
+    </style>
+  </head>
+  <body ng-app="jeopardyApp" ng-controller="GameboardCtrl" ng-init="gameboard_opened();">
+    <div id="gameboard" class="container-fluid">
+    	<div class="row-fluid">
+		<div class="category_cols col-md-2" ng-repeat="category in categories">
+			<button class="category_head btn-block">{{category}}</button><br/>
+			<button class="category_points btn-block" ng-repeat="(point, qa) in questions[category]">
+				<span ng-hide="questions_used[category + ':' + point]">${{point}}</span>
+			</button><br/>
+		</div>
+		<div id="scorespanel" class="col-md-2 well" style="background-color: silver; height: 100%;">
+			<h1 style="text-align: center; font-family: 'Economica';" >Jeopardy<br/>Dental</h1>
+			<hr/>
+			<div ng-repeat="team in teams track by $index" class="teambox">
+				<b class="score" ng-class="{ negscore: (scores[team] && (scores[team] < 0)) }">${{scores[team] || 0}}</b>
+				<span class="name">{{teams[$index]}}</span>
+			</div>
+		</div>
+	</div>
+
+    </div>
+
+<style>
+	#answerModal { display: block; position: absolute; padding: 50px; color: white;
+		background-color: #0000cc; top: 0; left: 0; bottom: 0; right: 0;
+                -moz-box-shadow:    inset 0 0 200px #000000;
+                -webkit-box-shadow: inset 0 0 200px #000000;
+                box-shadow:         inset 0 0 200px #000000;
+		opacity: 0;
+		text-align: center;
+/*
+		-webkit-transition: rotateX 1s linear 2s;
+		-webkit-transition: -webkit-transform 1s;
+*/
+/*
+		-moz-transition: -moz-transform 1s;
+		-webkit-transform: scale3d(0.1,0.1,0.1) rotate3d(0,0,1, 180deg);
+		-moz-transform: scale3d(0.1,0.1,0.1) rotate3d(0,0,1, 180deg);
+*/
+	}
+	#answerModal.show-add, #answerModal.show-remove, #answerModal.hide-add, #answerModal.hide-remove {
+		-webkit-transition: all linear 10s;
+	}
+	#answerModal.show, #answerModal.show-add {
+		opacity: 1.0;
+/*
+		-webkit-transform: scale3d(1.0,1.0,1.0) rotate3d(0,0,1, 0deg);
+		-moz-transform: scale3d(1.0,1.0,1.0) rotate3d(0,0,1, 0deg);
+*/
+	}
+	#answerModal.hide, #answerModal.hide-add {
+/*
+		opacity: 0;
+		-webkit-transform: scale3d(0.1,0.1,0.1) rotate3d(0,0,1, 180deg);
+		-moz-transform: scale3d(0.1,0.1,0.1) rotate3d(0,0,1, 180deg);
+*/
+	}
+	#answerModal #answer { padding: 50px; font-size: 3em; vertical-align: middle; }
+	#answerModal #answer, #answerModal h2 { text-shadow: 4px 4px 4px #000;}
+	#answerModal { border: 10px solid #ccc; border-right: 10px solid #666; border-bottom: 10px solid #666; border-radius: 25px; }
+	#answerModal .timer { font-size: 2em; color: #5EA54D; width: 100px; height: 75px; background-color: black; color: white; float: right; border-radius: 50px; }
+	
+</style>
+
+<div id="answerModal" ng-class="{ show: current_selection, hide: !current_selection }">
+		<h2 style="border-bottom: 1px solid white;" >{{current_category}}: [{{current_points}}]
+			<span class="timer">{{currentTimerVal}}</span>
+		</h2>
+		<div id="answer">
+			<span ng-bind-html="current_selection[0]"></span>
+		</div>
+
+</div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="jquery/jquery.min.js"></script>
+    <script src="angular/angular.js"
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <script src="jeopardy.js"></script>
+  </body>
+</html>
